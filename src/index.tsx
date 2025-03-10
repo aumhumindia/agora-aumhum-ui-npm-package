@@ -21,7 +21,7 @@ import MinVideoView from './MinVideoView'
 import VideoPlaceholder from './VideoPlaceholder'
 import RtcConfigure from './RTCConfigure'
 import RtmConfigure, { createRawMessage, parsePayload } from './RTMConfigure'
-import LocalUserContext from './LocalUserContext'
+import LocalUserContext, { LocalContext } from './LocalUserContext'
 import MinUidContext from './MinUidContext'
 import MaxUidContext from './MaxUidContext'
 import PropsContext from './PropsContext'
@@ -49,6 +49,7 @@ export {
   RtcConfigure,
   TracksConfigure,
   LocalUserContext,
+  LocalContext,
   MaxUidContext,
   MinUidContext,
   PropsContext,
