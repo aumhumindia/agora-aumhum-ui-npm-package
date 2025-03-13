@@ -17,6 +17,10 @@ function LocalAudioMute() {
       <BtnTemplate
         style={muteLocalAudio}
         name={local.hasAudio === ToggleState.enabled ? 'mic' : 'micOff'}
+        data-role='agora-mic'
+        data-custom-state={
+          local.hasAudio === ToggleState.enabled ? 'enabled' : 'disabled'
+        }
         onClick={() =>
           localAudioTrack &&
           muteAudio(local, dispatch, localAudioTrack, callbacks)

@@ -14,6 +14,8 @@ function SettingsButton() {
       <BtnTemplate
         style={settings}
         name='settings'
+        data-role='agora-change-settings'
+        data-custom-state={settingsDialogOpen ? 'enabled' : 'disabled'}
         onClick={() => setSettingsDialogOpen(true)}
       />
 

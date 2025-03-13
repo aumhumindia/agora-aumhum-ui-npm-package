@@ -91,6 +91,34 @@ const App: React.FunctionComponent = () => {
     checkAvailableDevices()
   }, [])
 
+  function toggleMic() {
+    const micButton = document.querySelector(
+      '[data-role="agora-mic"]'
+    ) as HTMLElement
+    if (micButton) {
+      const micState = micButton.getAttribute('data-custom-state')
+      console.log(`MIC WAS: ${micState}`)
+      micButton.click()
+      return true
+    }
+    console.warn('Mic button not found!')
+    return false
+  }
+
+  function toggleCamera() {
+    const cameraButton = document.querySelector(
+      '[data-role="agora-camera"]'
+    ) as HTMLElement
+    if (cameraButton) {
+      const cameraState = cameraButton.getAttribute('data-custom-state')
+      console.log(`CAMERA WAS: ${cameraState}`)
+      cameraButton.click()
+      return true
+    }
+    console.warn('Camera button not found!')
+    return false
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.videoContainer}>
@@ -101,6 +129,12 @@ const App: React.FunctionComponent = () => {
               <p style={{ fontSize: 20, width: 200 }}>
                 You're {isHost ? 'a host' : 'an audience'}
               </p>
+              <p style={{ fontSize: 20 }} onClick={toggleMic}>
+                TOGGLE MIC
+              </p>
+              <p style={{ fontSize: 20 }} onClick={toggleCamera}>
+                TOGGLE CAMERA
+              </p>
               <p style={styles.btn} onClick={() => setHost(!isHost)}>
                 Change Role
               </p>
@@ -110,16 +144,19 @@ const App: React.FunctionComponent = () => {
             </div>
             <AgoraUIKit
               rtcProps={{
-                appId: '',
-                channel: 'test',
-                token: null, // add your token if using app in secured mode
+                appId: 'a3f4e664cb01478fa5bef1fc5b878a72',
+                channel: 'channel',
+                // token: null, // add your token if using app in secured mode
+                token:
+                  '007eJxTYAj9lXAl3ffRphXRba/6WGI0PrhsfKO/c/sEP7a176YufmKlwJBonGaSamZmkpxkYGhibpGWaJqUmmaYlmyaZGFukWhutKz3UnpDICND2/oHTIwMEAjiszMkZyTm5aXmMDAAAI5vJAw=',
                 role: isHost ? 'host' : 'audience',
                 layout: isPinned ? layout.pin : layout.grid,
                 enableScreensharing: true,
                 enableAudio: false,
                 enableVideo: false,
                 cameraDeviceId: selectedCamera,
-                microphoneDeviceId: selectedMicrophone
+                microphoneDeviceId: selectedMicrophone,
+                uid: 45977
               }}
               rtmProps={{
                 username: username || 'user',

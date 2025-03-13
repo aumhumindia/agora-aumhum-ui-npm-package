@@ -14,6 +14,8 @@ function Screenshare() {
       <BtnTemplate
         style={screenshare}
         name={isScreensharing ? 'stop' : 'screen'}
+        data-role='agora-screen-share'
+        data-custom-state={isScreensharing ? 'enabled' : 'disabled'}
         onClick={() => toggleScreensharing()}
       />
     </div>

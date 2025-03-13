@@ -19,6 +19,10 @@ function LocalVideoMute() {
         name={
           local.hasVideo === ToggleState.enabled ? 'videocam' : 'videocamOff'
         }
+        data-role='agora-camera'
+        data-custom-state={
+          local.hasVideo === ToggleState.enabled ? 'enabled' : 'disabled'
+        }
         onClick={() =>
           localVideoTrack &&
           muteVideo(local, dispatch, localVideoTrack, callbacks)

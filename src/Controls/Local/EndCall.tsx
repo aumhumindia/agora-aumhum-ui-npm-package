@@ -13,6 +13,7 @@ function EndCall() {
     <BtnTemplate
       style={endCall || { backgroundColor: '#eb5144', borderColor: '#fff' }}
       name='callEnd'
+      data-role='agora-call-end'
       onClick={() => callbacks?.EndCall && callbacks.EndCall()}
     />
   )

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import PropsContext from '../PropsContext'
 import Icons from './Icons'
-interface BtnTemplateInterface {
+interface BtnTemplateInterface extends React.HTMLAttributes<HTMLDivElement> {
   name: string
   color?: string
   onClick: () => void
@@ -10,12 +10,13 @@ interface BtnTemplateInterface {
 }
 
 const BtnTemplate = (props: BtnTemplateInterface) => {
-  const { onClick, name, disabled, style } = props
+  const { onClick, name, disabled, style, ...rest } = props
   const { styleProps } = useContext(PropsContext)
   const { theme, BtnTemplateStyles, iconSize, customIcon } = styleProps || {}
 
   return (
     <div
+      {...rest}
       style={{
         ...{
           width: 35,
