@@ -2,6 +2,7 @@ import {
   ILocalAudioTrack,
   ILocalVideoTrack,
   IMicrophoneAudioTrack,
+  ICameraVideoTrack,
   createMicrophoneAndCameraTracks
 } from 'agora-rtc-react'
 import React, { PropsWithChildren, useEffect, useRef, useState } from 'react'
@@ -10,6 +11,9 @@ import { TracksProvider } from './TracksContext'
 import {
   setGlobalMicrophoneDevice
 } from './Utils/microphoneDeviceManager'
+import {
+  setGlobalCameraDevice
+} from './Utils/cameraDeviceManager'
 
 const useTracks = createMicrophoneAndCameraTracks(
   { encoderConfig: {} },
@@ -38,6 +42,14 @@ const TracksConfigure: React.FC<
     }
   }, [microphoneDeviceId])
 
+  // Initialize camera device from props
+  useEffect(() => {
+    if (cameraDeviceId) {
+      setGlobalCameraDevice(cameraDeviceId)
+      localStorage.setItem('selectedCamera', cameraDeviceId)
+    }
+  }, [cameraDeviceId])
+
   // Listen for microphone device changes
   useEffect(() => {
     const handleMicrophoneDeviceChange = async (event: any) => {
@@ -59,6 +71,28 @@ const TracksConfigure: React.FC<
       window.removeEventListener('microphoneDeviceChanged', handleMicrophoneDeviceChange)
     }
   }, [localAudioTrack])
+
+  // Listen for camera device changes
+  useEffect(() => {
+    const handleCameraDeviceChange = async (event: any) => {
+      const newDeviceId = event.detail.deviceId
+
+      if (localVideoTrack && 'setDevice' in localVideoTrack) {
+        try {
+          await (localVideoTrack as ICameraVideoTrack).setDevice(newDeviceId)
+          console.log(`Updated video track to use camera: ${newDeviceId}`)
+        } catch (error) {
+          console.log('Failed to update video track device:', error)
+        }
+      }
+    }
+
+    window.addEventListener('cameraDeviceChanged', handleCameraDeviceChange)
+
+    return () => {
+      window.removeEventListener('cameraDeviceChanged', handleCameraDeviceChange)
+    }
+  }, [localVideoTrack])
 
   useEffect(() => {
     if (tracks !== null) {

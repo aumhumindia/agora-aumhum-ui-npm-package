@@ -15,6 +15,7 @@ import TracksConfigure from './TracksConfigure'
 import RtmConfigure from './RTMConfigure'
 import LocalUserContext from './LocalUserContext'
 import PopUp from './Controls/Remote/RemoteMutePopUp'
+import { useDeviceAutoSwitch } from './hooks/useDeviceAutoSwitch'
 
 /**
  * High level component to render the UI Kit
@@ -23,6 +24,12 @@ import PopUp from './Controls/Remote/RemoteMutePopUp'
 const AgoraUIKit: React.FC<PropsInterface> = (props) => {
   const { styleProps, rtcProps } = props
   const { UIKitContainer } = styleProps || {}
+
+  // Enable automatic device switching
+  useDeviceAutoSwitch({
+    enabled: true,
+    interval: 2000
+  })
 
   return (
     <PropsProvider value={props}>
