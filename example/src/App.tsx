@@ -15,16 +15,22 @@ const App: React.FunctionComponent = () => {
   const [availableMicrophones, setAvailableMicrophones] = useState<
     MediaDeviceInfo[]
   >([])
+  const [availablePlaybackDevices, setAvailablePlaybackDevices] = useState<
+    MediaDeviceInfo[]
+  >([])
   const [selectedCamera, setSelectedCamera] = useState<string | undefined>()
   const [selectedMicrophone, setSelectedMicrophone] = useState<
     string | undefined
   >()
+  const [selectedPlayback, setSelectedPlayback] = useState<string | undefined>()
 
   async function checkAvailableDevices() {
     const cameras = await AgoraRTC.getCameras()
     const microphones = await AgoraRTC.getMicrophones()
+    const playbackDevices = await AgoraRTC.getPlaybackDevices()
     setAvailableCameras(cameras)
     setAvailableMicrophones(microphones)
+    setAvailablePlaybackDevices(playbackDevices)
     console.log(await AgoraRTC.getPlaybackDevices())
   }
 
@@ -156,6 +162,7 @@ const App: React.FunctionComponent = () => {
                 enableVideo: false,
                 cameraDeviceId: selectedCamera,
                 microphoneDeviceId: selectedMicrophone,
+                playbackDeviceId: selectedPlayback,
                 uid: 45977
               }}
               rtmProps={{
@@ -194,6 +201,13 @@ const App: React.FunctionComponent = () => {
               {availableMicrophones.map((item, index) => (
                 <option key={index} value={item.deviceId}>
                   {item.label}
+                </option>
+              ))}
+            </select>
+            <select onChange={(e) => setSelectedPlayback(e.target.value)}>
+              {availablePlaybackDevices.map((item, index) => (
+                <option key={index} value={item.deviceId}>
+                  {item.label || 'Default Speaker'}
                 </option>
               ))}
             </select>

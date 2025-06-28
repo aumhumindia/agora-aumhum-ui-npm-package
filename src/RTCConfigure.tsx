@@ -24,6 +24,10 @@ import {
   startScreenshare,
   stopScreenshare
 } from './Controls/Local/screenshareFunctions'
+import {
+  applyPlaybackDevice,
+  setGlobalPlaybackDevice
+} from './Utils/playbackDeviceManager'
 
 const useClient = createClient({ codec: 'h264', mode: 'rtc' }) // pass in another client if use h264
 
@@ -40,6 +44,15 @@ const RtcConfigure: React.FC<PropsWithChildren<Partial<RtcPropsInterface>>> = (
   const { callbacks, rtcProps } = useContext(PropsContext)
   const [ready, setReady] = useState<boolean>(false)
   const [channelJoined, setChannelJoined] = useState<boolean>(false)
+  
+  // Initialize playback device from props
+  useEffect(() => {
+    if (rtcProps.playbackDeviceId) {
+      setGlobalPlaybackDevice(rtcProps.playbackDeviceId)
+      localStorage.setItem('selectedPlayback', rtcProps.playbackDeviceId)
+    }
+  }, [rtcProps.playbackDeviceId])
+
   let joinRes: ((arg0: boolean) => void) | null = null // Resolve for canJoin -> to set canJoin to true
   const canJoin = useRef(
     new Promise<boolean | void>((resolve, reject) => {
@@ -55,6 +68,40 @@ const RtcConfigure: React.FC<PropsWithChildren<Partial<RtcPropsInterface>>> = (
     client = rtcProps.customRtcClient
   }
 
+  // Listen for playback device changes to update all tracks
+  useEffect(() => {
+    const handlePlaybackDeviceChange = async (event: any) => {
+      const newDeviceId = event.detail.deviceId
+      
+      // Update local audio track if exists
+      if (localAudioTrack && 'setPlaybackDevice' in localAudioTrack) {
+        try {
+          await (localAudioTrack as any).setPlaybackDevice(newDeviceId)
+        } catch (error) {
+          console.log('Failed to update local audio playback device:', error)
+        }
+      }
+      
+      // Update all remote audio tracks
+      const remoteUsers = client.remoteUsers
+      for (const user of remoteUsers) {
+        if (user.audioTrack && 'setPlaybackDevice' in user.audioTrack) {
+          try {
+            await (user.audioTrack as any).setPlaybackDevice(newDeviceId)
+          } catch (error) {
+            console.log(`Failed to update audio playback device for user ${user.uid}:`, error)
+          }
+        }
+      }
+    }
+    
+    window.addEventListener('playbackDeviceChanged', handlePlaybackDeviceChange)
+    
+    return () => {
+      window.removeEventListener('playbackDeviceChanged', handlePlaybackDeviceChange)
+    }
+  }, [client, localAudioTrack])
+  
   let localVideoTrackHasPublished = false
   let localAudioTrackHasPublished = false
 
@@ -117,6 +164,10 @@ const RtcConfigure: React.FC<PropsWithChildren<Partial<RtcPropsInterface>>> = (
                 if (mediaType === 'audio') {
                   // eslint-disable-next-line no-unused-expressions
                   remoteUser.audioTrack?.play()
+                  // Apply playback device if set
+                  if (remoteUser.audioTrack) {
+                    applyPlaybackDevice(remoteUser.audioTrack)
+                  }
                 } else {
                   if (rtcProps.enableDualStream && rtcProps.dualStreamMode) {
                     client.setStreamFallbackOption(

@@ -331,6 +331,10 @@ export interface RtcPropsInterface {
    * Preselected Microphone Device Id
    */
   microphoneDeviceId?: string
+  /**
+   * Preselected Playback Device Id
+   */
+  playbackDeviceId?: string
 }
 
 /**

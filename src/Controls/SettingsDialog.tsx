@@ -27,8 +27,12 @@ function SelectMenuCamera() {
       const alreadySelectedDeviceId = cams?.find(
         (item) => item.label === localVideoTrack?.getTrackLabel()
       )?.deviceId
-      if (alreadySelectedDeviceId) {
+      const defaultCam = localStorage.getItem('selectedCamera')
+      if (defaultCam) {
+        setCameraDeviceId(defaultCam)
+      } else if (alreadySelectedDeviceId) {
         setCameraDeviceId(alreadySelectedDeviceId)
+        localStorage.setItem('selectedCamera', alreadySelectedDeviceId)
       }
     }
     setThingsUp()
@@ -75,8 +79,12 @@ function SelectMenuMic() {
       const alreadySelectedDeviceId = mics?.find(
         (item) => item.label === localAudioTrack?.getTrackLabel()
       )?.deviceId
-      if (alreadySelectedDeviceId) {
+      const defaultMic = localStorage.getItem('selectedMicrophone')
+      if (defaultMic) {
+        setMicDeviceId(defaultMic)
+      } else if (alreadySelectedDeviceId) {
         setMicDeviceId(alreadySelectedDeviceId)
+        localStorage.setItem('selectedMicrophone', alreadySelectedDeviceId)
       }
     }
     setThingsUp()
@@ -111,6 +119,68 @@ function SelectMenuMic() {
   )
 }
 
+function SelectMenuPlayback() {
+  const [playbackDeviceId, setPlaybackDeviceId] = React.useState('')
+  const [availablePlaybackDevices, setAvailablePlaybackDevices] = useState<
+    MediaDeviceInfo[]
+  >([])
+
+  useEffect(() => {
+    async function setThingsUp() {
+      try {
+        const playbackDevices = await AgoraRTC.getPlaybackDevices()
+        setAvailablePlaybackDevices([...playbackDevices])
+
+        const defaultPlayback = localStorage.getItem('selectedPlayback')
+        if (defaultPlayback) {
+          setPlaybackDeviceId(defaultPlayback)
+        } else if (playbackDevices.length > 0) {
+          // Set first device as default
+          setPlaybackDeviceId(playbackDevices[0].deviceId)
+          localStorage.setItem('selectedPlayback', playbackDevices[0].deviceId)
+        }
+      } catch (error) {
+        console.log('Failed to get playback devices:', error)
+      }
+    }
+    setThingsUp()
+  }, [])
+
+  const handleChange = async (event: SelectChangeEvent) => {
+    const newDeviceId = event.target.value as string
+    setPlaybackDeviceId(newDeviceId)
+    localStorage.setItem('selectedPlayback', newDeviceId)
+    
+    // Dispatch a custom event to notify other components
+    window.dispatchEvent(
+      new CustomEvent('playbackDeviceChanged', {
+        detail: { deviceId: newDeviceId }
+      })
+    )
+  }
+
+  return (
+    <Box sx={{ marginTop: 5 }}>
+      <FormControl fullWidth>
+        <InputLabel id='playback-select-label'>Change Speaker/Output</InputLabel>
+        <Select
+          labelId='playback-select-label'
+          id='playback-select'
+          value={playbackDeviceId}
+          label='Change Speaker/Output'
+          onChange={handleChange}
+        >
+          {availablePlaybackDevices?.map((device) => (
+            <MenuItem key={device?.deviceId} value={device?.deviceId}>
+              {device?.label || 'Default Speaker'}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
+  )
+}
+
 /// the component below is the main component
 
 export interface SimpleDialogProps {
@@ -131,6 +201,7 @@ export default function SettingsDialog(props: SimpleDialogProps) {
       <DialogContent sx={{ minWidth: 350, maxWidth: 350 }}>
         <SelectMenuCamera />
         <SelectMenuMic />
+        <SelectMenuPlayback />
       </DialogContent>
     </Dialog>
   )

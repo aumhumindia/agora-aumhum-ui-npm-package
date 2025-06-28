@@ -10,11 +10,11 @@
 4. Supported cameraDevice(pass deviceId here) and microphoneDevice(pass deviceId here) props, before joining a call (✅)
 5. Supported : control which users of video call can mute others' video and audio. (✅)
 
-6. Change Audio Playback Device (Output) (...coming soon ⏲️) 
-7. Option to pass prop for User picture to be shown instead of placeholder when camera is off. (...coming soon ⏲️)
+6. Change Audio Playback Device (Output) ✅
+7. Option to pass prop for User picture to be shown instead of placeholder when camera is off. (✅)
 
 ### Supported New Props
-RTC : enableAudio, enableVideo, cameraDeviceId, microphoneDeviceId
+RTC : enableAudio, enableVideo, cameraDeviceId, microphoneDeviceId, playbackDeviceId
 RTM : isThisUserAllowedToMuteOthers
 
 ### Installation

@@ -31,6 +31,8 @@ const TracksConfigure: React.FC<
       const audioTrack = tracks[0]
       const videoTrack = tracks[1]
 
+      console.info('AGORA TRACKS:', tracks)
+
       if (!enableAudio) {
         audioTrack.setEnabled(false)
       }
