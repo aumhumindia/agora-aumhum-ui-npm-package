@@ -26,7 +26,9 @@ import {
 } from './Controls/Local/screenshareFunctions'
 import {
   applyPlaybackDevice,
-  setGlobalPlaybackDevice
+  setGlobalPlaybackDevice,
+  isCurrentDeviceAvailable,
+  switchToAvailableDevice
 } from './Utils/playbackDeviceManager'
 
 const useClient = createClient({ codec: 'h264', mode: 'rtc' }) // pass in another client if use h264
@@ -102,6 +104,60 @@ const RtcConfigure: React.FC<PropsWithChildren<Partial<RtcPropsInterface>>> = (
     }
   }, [client, localAudioTrack])
   
+  // Listen for Agora device change events and handle automatic switching
+  useEffect(() => {
+    const handleDeviceChange = async (deviceInfo: any) => {
+      console.log('Audio playback device changed:', deviceInfo)
+      
+      // Check if current device is still available
+      const isAvailable = await isCurrentDeviceAvailable()
+      
+      if (!isAvailable) {
+        console.log('Current playback device disconnected, switching to available device...')
+        const newDeviceId = await switchToAvailableDevice()
+        
+        if (newDeviceId) {
+          // Update local audio track
+          if (localAudioTrack && 'setPlaybackDevice' in localAudioTrack) {
+            try {
+              await (localAudioTrack as any).setPlaybackDevice(newDeviceId)
+            } catch (error) {
+              console.log('Failed to update local audio after auto-switch:', error)
+            }
+          }
+          
+          // Update all remote audio tracks
+          const remoteUsers = client.remoteUsers
+          for (const user of remoteUsers) {
+            if (user.audioTrack && 'setPlaybackDevice' in user.audioTrack) {
+              try {
+                await (user.audioTrack as any).setPlaybackDevice(newDeviceId)
+              } catch (error) {
+                console.log(`Failed to update remote audio for user ${user.uid} after auto-switch:`, error)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Listen for Agora's playback device change events
+    if (typeof AgoraRTC.onPlaybackDeviceChanged !== 'undefined') {
+      AgoraRTC.onPlaybackDeviceChanged = handleDeviceChange
+    }
+
+    // Also listen for the general device change event
+    AgoraRTC.on?.('playback-device-changed', handleDeviceChange)
+
+    return () => {
+      // Clean up listeners
+      if (typeof AgoraRTC.onPlaybackDeviceChanged !== 'undefined') {
+        AgoraRTC.onPlaybackDeviceChanged = undefined
+      }
+      AgoraRTC.off?.('playback-device-changed', handleDeviceChange)
+    }
+  }, [client, localAudioTrack])
+
   let localVideoTrackHasPublished = false
   let localAudioTrackHasPublished = false
 

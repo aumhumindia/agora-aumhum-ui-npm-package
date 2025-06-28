@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useRef, PropsWithChildren } from 'react'
-import { RtcPropsInterface, mediaStore } from './PropsContext'
 import {
-  ILocalVideoTrack,
   ILocalAudioTrack,
+  ILocalVideoTrack,
+  IMicrophoneAudioTrack,
   createMicrophoneAndCameraTracks
 } from 'agora-rtc-react'
+import React, { PropsWithChildren, useEffect, useRef, useState } from 'react'
+import { RtcPropsInterface, mediaStore } from './PropsContext'
 import { TracksProvider } from './TracksContext'
+import {
+  setGlobalMicrophoneDevice
+} from './Utils/microphoneDeviceManager'
 
 const useTracks = createMicrophoneAndCameraTracks(
   { encoderConfig: {} },
@@ -25,6 +29,36 @@ const TracksConfigure: React.FC<
   const { ready: trackReady, tracks, error } = useTracks()
   const mediaStore = useRef<mediaStore>({})
   const { enableAudio, enableVideo, cameraDeviceId, microphoneDeviceId } = props
+
+  // Initialize microphone device from props
+  useEffect(() => {
+    if (microphoneDeviceId) {
+      setGlobalMicrophoneDevice(microphoneDeviceId)
+      localStorage.setItem('selectedMicrophone', microphoneDeviceId)
+    }
+  }, [microphoneDeviceId])
+
+  // Listen for microphone device changes
+  useEffect(() => {
+    const handleMicrophoneDeviceChange = async (event: any) => {
+      const newDeviceId = event.detail.deviceId
+      
+      if (localAudioTrack && 'setDevice' in localAudioTrack) {
+        try {
+          await (localAudioTrack as IMicrophoneAudioTrack).setDevice(newDeviceId)
+          console.log(`Updated audio track to use microphone: ${newDeviceId}`)
+        } catch (error) {
+          console.log('Failed to update audio track device:', error)
+        }
+      }
+    }
+    
+    window.addEventListener('microphoneDeviceChanged', handleMicrophoneDeviceChange)
+    
+    return () => {
+      window.removeEventListener('microphoneDeviceChanged', handleMicrophoneDeviceChange)
+    }
+  }, [localAudioTrack])
 
   useEffect(() => {
     if (tracks !== null) {
